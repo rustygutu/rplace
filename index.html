@@ -35,7 +35,7 @@
         function getMousePos(canvas, evt) {
             const rect = canvas.getBoundingClientRect();
             return {
-                x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+                x: (evt.clientX - rect.left - 20) / (rect.right - rect.left) * canvas.width,
                 y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
             };
         }
@@ -75,20 +75,42 @@
         };
         img.src = "images/GME14.png";
 
-        foreground.addEventListener('mousemove', event =>
-        {
-            let p = getMousePos(foreground, event);
-            let x = Math.floor((p.x)/X_PIXELS) + X_IN_PLACE;
-            let y = Math.floor((p.y-Y_OFFSET)/Y_PIXELS) + Y_IN_PLACE;
-            fg.clearRect(0, 0, fg.canvas.width, fg.canvas.height);
-
-            let text = x+' / ' + y;
+        function drawText(text, x, y){
             fg.font = '80px Sans-serif';
             fg.strokeStyle = 'black';
             fg.lineWidth = 8;
-            fg.strokeText(text, p.x+10, p.y + 20);
+            fg.strokeText(text, x, y);
             fg.fillStyle = 'white';
-            fg.fillText(text, p.x+10, p.y + 20);
+            fg.fillText(text, x, y);
+        }
+
+        foreground.addEventListener('mousemove', event =>
+        {
+            let p = getMousePos(foreground, event);
+            let x = Math.floor((p.x)/X_PIXELS);
+            let y = Math.floor((p.y-Y_OFFSET)/Y_PIXELS) ;
+            fg.clearRect(0, 0, fg.canvas.width, fg.canvas.height);
+            drawText((x+ X_IN_PLACE)+"", p.x+40, p.y - 30)
+            drawText((y+ Y_IN_PLACE)+"", p.x+40, p.y + 50)
+
+            fg.lineWidth = 4;
+            let circle_x = x*X_PIXELS+X_PIXELS/2;
+            let circle_y = y*Y_PIXELS+Y_OFFSET+Y_PIXELS/2;
+            fg.beginPath()
+            fg.strokeStyle = 'red';
+            fg.arc(circle_x, circle_y, X_PIXELS-6, 0, 2 * Math.PI, false);
+            fg.stroke()
+
+            fg.beginPath()
+            fg.strokeStyle = 'white';
+            fg.arc(circle_x, circle_y, X_PIXELS-4, 0, 2 * Math.PI, false);
+            fg.stroke()
+
+            fg.beginPath()
+            fg.strokeStyle = 'black';
+            fg.arc(circle_x, circle_y, X_PIXELS, 0, 2 * Math.PI, false);
+            fg.stroke()
+
         });
 
         foreground.addEventListener('click', event =>
