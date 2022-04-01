@@ -122,7 +122,10 @@
             window.open(url, '_blank').focus();
         });
 
-
+        setTimeout(() => {
+            // Reload every 5 minutes to fetch updates from the gh
+            location.reload(); 
+        }, 60000 * 5)
     </script>
 
 </body>
