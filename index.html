@@ -14,50 +14,31 @@
             left: 0;
         }
 
-        .overlay {
-            position: absolute;
-            right: 0;
-            top: 0;
-            background-color: white;
-            padding: 1rem;
-        }
-
-        .overlay.hide {
-            display: none;
-        }
         
     </style>
 </head>
 <body>
 
+    <div>
+        <p>
+            OVERLAY INSTRUCTIONS
+            <br />
+            If you use Chrome:
+            <a href="https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en">https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en</a>
+            <br />
+            If you use Opera:
+            <a href="https://www.tampermonkey.net/">https://www.tampermonkey.net/</a>
+            <br />
+            If you use Firefox:
+            <a href="https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/">https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/</a>
+            <br />
+            To install, click here:<a href="https://rplacesuperstonk.github.io/rplace-image/userscript.user.js">https://rplacesuperstonk.github.io/rplace-image/userscript.user.js</a>
+        </p>
+    </div>
+
     <div id = "container" class = "container">
         <canvas id = "canvas_background" width = "800" height = "500"></canvas>
         <canvas id = "canvas_foreground" width = "800" height = "500"></canvas>
-    </div>
-    
-    <script>
-        const hideOverlay = () => {
-            document.getElementById("overlay").classList.add('hide')
-        }
-    </script>
-    <div id = "overlay" class = "overlay">
-        <button onclick="hideOverlay()">X Close</button>
-        <p>
-            To use the overlay install the following browser extension
-            <br />
-            USE THIS FOR CHROME<br />
-            <a href="https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en">https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en</a>
-            <br /><br />
-            FOR OPERA YOU WILL NEED TO FIND IT FROM THE SITE<br />
-            <a href="https://www.tampermonkey.net/">https://www.tampermonkey.net/</a>
-            <br /><br />
-            USE THIS FOR FIREFOX<br />
-            <a href="https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/">https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/</a>
-            <br /><br />
-            Then paste this script <a href="https://rplacesuperstonk.github.io/rplace-image/userscript.user.js">https://rplacesuperstonk.github.io/rplace-image/userscript.user.js</a>
-            <br /><br />
-            A nice and simple 2-click solution to making sure you never place an incorrect pixel! 
-        </p>
     </div>
 
     <script>
@@ -126,7 +107,12 @@
             let p = getMousePos(foreground, event);
             let x = Math.floor((p.x)/X_PIXELS);
             let y = Math.floor((p.y-Y_OFFSET)/Y_PIXELS) ;
+
             fg.clearRect(0, 0, fg.canvas.width, fg.canvas.height);
+
+            if (y<0){
+                return;
+            }
             drawText((x+ X_IN_PLACE)+"", p.x+40, p.y - 30)
             drawText((y+ Y_IN_PLACE)+"", p.x+40, p.y + 50)
 
@@ -155,6 +141,11 @@
             let p = getMousePos(foreground, event);
             let x = Math.floor((p.x)/X_PIXELS) + X_IN_PLACE;
             let y = Math.floor((p.y-Y_OFFSET)/Y_PIXELS) + Y_IN_PLACE;
+
+            if (y<Y_IN_PLACE){
+                return;
+            }
+
             let url ="https://new.reddit.com/r/place/?cx="+x+"&cy="+y+"&px=23"
             window.open(url, '_blank').focus();
         });
