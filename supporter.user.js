@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         SuperStonk rplace supporter
+// @name         SuperStonk rplace autoclicker
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  support clicking
@@ -7,15 +7,22 @@
 // @match        https://hot-potato.reddit.com/embed*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=reddit.com
 // @grant        none
-// @updateURL    https://halfdane.github.io/rplace/supporter.user.js
-// @downloadURL  https://halfdane.github.io/rplace/supporter.user.js
+// @updateURL    https://halfdane.github.io/rplace/autoclicker.user.js
+// @downloadURL  https://halfdane.github.io/rplace/autoclicker.user.js
 // ==/UserScript==
 
 const X_OFFSET = 773
 const Y_OFFSET = 735
 
 async function run() {
-    const debug=true;
+    let run = false
+    let debug=false;
+
+    let x_min = 0;
+    let x_max = 0;
+    let y_min = 0;
+    let y_max = 0;
+
     const g = (e, t) =>
         new CustomEvent(e, {
             composed: !0,
@@ -50,6 +57,73 @@ async function run() {
         colors[v] = k;
     }
 
+    function checkbox(id, labelText, checked, onclick) {
+        const elementDiv = document.createElement("div");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = checked;
+        checkbox.id = id;
+        checkbox.onclick = onclick;
+
+        const label = document.createElement("label");
+        label.htmlFor = id;
+        label.appendChild(document.createTextNode(labelText));
+
+        elementDiv.appendChild(checkbox);
+        elementDiv.appendChild(label);
+        return elementDiv;
+    }
+
+    function coordinate(id, labeltext, value, onchange){
+        const elementDiv = document.createElement("div");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "number";
+        checkbox.value = value;
+        checkbox.id = id;
+        checkbox.addEventListener('change',onchange);
+
+        const label = document.createElement("label");
+        label.htmlFor = id;
+        label.appendChild(document.createTextNode(labeltext));
+
+        elementDiv.appendChild(checkbox);
+        elementDiv.appendChild(label);
+        return elementDiv;
+
+    }
+
+    function generateForm(){
+        const ml = document.querySelector("mona-lisa-embed");
+
+        const form = document.createElement("form");
+
+        form.appendChild(checkbox("should_run", "Run", run, function (event){run = event.target.checked;} ));
+        form.appendChild(checkbox("should_debug", "Debug", debug, function (event){debug = event.target.checked;} ));
+        form.appendChild(checkbox("should_show_overlay", "Overlay", true, function (event){
+            const parent = ml.shadowRoot.querySelector("mona-lisa-canvas").shadowRoot.querySelector("div")
+            const template_canvas = parent.querySelector("#template-canvas");
+            template_canvas.style.display = (event.target.checked ? "block" : "none")
+        } ));
+
+        let fieldset = document.createElement("fieldset");
+        form.appendChild(fieldset);
+        let legend = document.createElement("legend")
+        legend.appendChild(document.createTextNode("Enter focus coordinates IF YOU KNOW WHAT YOU'RE DOING!"));
+
+        fieldset.appendChild(coordinate("x_1", "X min", x_min, function (event){x_min = event.target.value;}));
+        fieldset.appendChild(coordinate("x_2", "X max", x_max, function (event){x_max = event.target.value;}));
+        fieldset.appendChild(coordinate("y_1", "Y min", y_min, function (event){y_min = event.target.value;}));
+        fieldset.appendChild(coordinate("y_2", "Y max", y_max, function (event){y_max = event.target.value;}));
+
+        const div = document.createElement("div");
+        div.appendChild(form);
+        div.style.cssText = "position: absolute;top:"+X_OFFSET+"px;left: 700px;background-color: green; width: 500px;height:100px;";
+        console.log(div)
+        ml.appendChild(div);
+    }
+
     function createOrGetTemplateCanvas(parent){
         const existing = parent.querySelector('#template-canvas')
         if (existing) {
@@ -72,6 +146,7 @@ async function run() {
                 template_canvas.height = img.height;
                 const template_ctx = template_canvas.getContext("2d");
                 template_ctx.drawImage(img, 0, 0);
+
                 resolve({template_ctx: template_ctx, template_img: img})
             }
             img.onerror = reject
@@ -99,23 +174,40 @@ async function run() {
 
     await sleep(5_000);
 
+    generateForm();
+
     while (true) {
-        console.log("running");
         let edited = false;
         try{
             const ml = document.querySelector("mona-lisa-embed");
-            const canvas = ml.shadowRoot.querySelector("mona-lisa-canvas").shadowRoot.querySelector("div > canvas")
+            const parent = ml.shadowRoot.querySelector("mona-lisa-canvas").shadowRoot.querySelector("div")
+            const canvas = parent.querySelector("canvas")
 
             const {template_ctx, template_img} = await get_template_ctx(canvas);
 
+
+            let x1 = (X_OFFSET<=x_min && x_min<=template_img.width+X_OFFSET) ? x_min : X_OFFSET;
+            let x2 = (x1<x_max && x_max<template_img.width+X_OFFSET) ? x_max : template_img.width+X_OFFSET;
+            let y1 = (Y_OFFSET<y_min && y_min<template_img.height+Y_OFFSET) ? y_min : Y_OFFSET;
+            let y2 = (y1<y_max && y_max<template_img.height+Y_OFFSET) ? y_max : template_img.height+Y_OFFSET;
+
+            console.log("focus area is", x1, x2, y1, y2);
+
+            if (!run) {
+                await sleep(1_000);
+                continue;
+            }
             const ctx = canvas.getContext('2d');
             const errors = []
-            for (let x = 0; x < template_img.width; x++) {
-                for (let y = 0; y < template_img.height; y++) {
-                    let correct = getPixel(template_ctx, x, y);
-                    let actual = getPixel(ctx, x+X_OFFSET, y+Y_OFFSET);
+
+
+
+            for (let x = x1; x < x2; x++) {
+                for (let y = y1; y < y2; y++) {
+                    let correct = getPixel(template_ctx, x - X_OFFSET, y-Y_OFFSET);
+                    let actual = getPixel(ctx, x, y);
                     if (actual !== correct) {
-                        errors.push({x: x+X_OFFSET, y: y+Y_OFFSET, correct: correct, actual: actual});
+                        errors.push({x: x, y: y, correct: correct, actual: actual});
                     }
                 }
             }
@@ -144,7 +236,7 @@ async function run() {
                 timeout =Math.floor(Math.random() * 5_000);
             }
             if (debug){
-                timeout = 1;
+                timeout = 100;
             }
             console.log("sleeping for ", timeout);
             await sleep(timeout);
