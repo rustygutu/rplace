@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         SuperStonk rplace autoclicker
+// @name         SuperStonk rplace supporter
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  support clicking
@@ -15,7 +15,7 @@ const X_OFFSET = 773
 const Y_OFFSET = 735
 
 async function run() {
-    const debug=false;
+    const debug=true;
     const g = (e, t) =>
         new CustomEvent(e, {
             composed: !0,
@@ -50,12 +50,24 @@ async function run() {
         colors[v] = k;
     }
 
-    async function get_template_ctx(){
+    function createOrGetTemplateCanvas(parent){
+        const existing = parent.querySelector('#template-canvas')
+        if (existing) {
+            return existing;
+        }
+        const template_canvas = document.createElement("canvas");
+        template_canvas.id = 'template-canvas';
+        parent.appendChild(template_canvas);
+        template_canvas.style.cssText = "position: absolute;top: "+Y_OFFSET+"px; left: "+X_OFFSET+"px;opacity: 50%;"
+        return template_canvas;
+    }
+
+    async function get_template_ctx(ml_canvas){
         return new Promise((resolve, reject) => {
             let img = new Image()
             img.crossOrigin = "Anonymous";
             img.onload = () => {
-                const template_canvas = document.createElement("canvas");
+                const template_canvas = createOrGetTemplateCanvas(ml_canvas.parentElement);
                 template_canvas.width = img.width;
                 template_canvas.height = img.height;
                 const template_ctx = template_canvas.getContext("2d");
@@ -63,7 +75,7 @@ async function run() {
                 resolve({template_ctx: template_ctx, template_img: img})
             }
             img.onerror = reject
-            img.src = "https://raw.githubusercontent.com/rplacesuperstonk/rplace-image/main/reference.png?tstamp=" + Math.floor(Date.now() / 10000);
+            img.src = "https://rplacesuperstonk.github.io/rplace-image/reference.png?tstamp=" + Math.floor(Date.now() / 10000);
         })
     }
 
@@ -91,10 +103,11 @@ async function run() {
         console.log("running");
         let edited = false;
         try{
-            const {template_ctx, template_img} = await get_template_ctx();
-
             const ml = document.querySelector("mona-lisa-embed");
             const canvas = ml.shadowRoot.querySelector("mona-lisa-canvas").shadowRoot.querySelector("div > canvas")
+
+            const {template_ctx, template_img} = await get_template_ctx(canvas);
+
             const ctx = canvas.getContext('2d');
             const errors = []
             for (let x = 0; x < template_img.width; x++) {
