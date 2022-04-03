@@ -11,8 +11,8 @@
 // @downloadURL  https://rustygutu.github.io/rplace/supporter.user.js
 // ==/UserScript==
 
-const X_OFFSET = 1808
-const Y_OFFSET = 615
+const X_OFFSET = 1500
+const Y_OFFSET = 1500
 
 async function run() {
     let run = false
