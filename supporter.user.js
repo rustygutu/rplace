@@ -12,7 +12,7 @@
 // ==/UserScript==
 
 const X_OFFSET = 1500
-const Y_OFFSET = 1500
+const Y_OFFSET = 1430
 
 async function run() {
     let run = false
