@@ -11,8 +11,8 @@
 // @downloadURL  https://rustygutu.github.io/rplace/supporter.user.js
 // ==/UserScript==
 
-const X_OFFSET = 773
-const Y_OFFSET = 735
+const X_OFFSET = 1808
+const Y_OFFSET = 615
 
 async function run() {
     let run = false
@@ -150,7 +150,7 @@ async function run() {
                 resolve({template_ctx: template_ctx, template_img: img})
             }
             img.onerror = reject
-            img.src = "https://rustygutu.github.io/saka-temp2.png?tstamp=" + Math.floor(Date.now() / 10000);
+            img.src = "https://rustygutu.github.io/saka-temp2.png";
         })
     }
 
